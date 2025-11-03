@@ -1,1 +1,36 @@
-/build/
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+
+# Eclipse
+.classpath
+.project
+.settings/
+bin/
+
+# OS
+.DS_Store
+
+# Log files
+*.log
+
+# Application properties
+application-local.yml
+
+# Uploads
+/uploads/
+/src/main/resources/static/uploads/
+
+# Compiled files
+*.class
+*.jar
+*.war
+*.ear
