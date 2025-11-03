@@ -288,7 +288,7 @@ $(function() {
 ### 브랜치 구조
 - `master`: 기존 JSP/Servlet 프로젝트 (보존)
 - **`refactor/v2.0`**: 리팩토링 작업 브랜치
-    - `feature/backend-setup`
+    - `feature/project-setup`
     - `feature/entity-design`
     - `feature/user-module`
     - `feature/board-module`
@@ -302,7 +302,7 @@ $(function() {
 - deploy: 배포
 
 ### 주요 마일스톤 커밋
-- [ ] Initial Spring Boot project setup
+- [x] Initial Spring Boot project setup
 - [ ] Complete Entity layer
 - [ ] Complete Service layer
 - [ ] Complete Controller layer
@@ -340,8 +340,12 @@ FLUSH PRIVILEGES;
 ### 완료된 작업
 - [x] 기존 프로젝트 분석
 - [x] 마이그레이션 계획 수립 (회사 환경에 맞춤)
+- [x] Spring Boot WAR 프로젝트 생성
 
 ### 다음 작업
-1. Spring Boot WAR 프로젝트 생성
-2. MySQL 로컬 설치 및 데이터베이스 생성
-3. 기본 Entity 설계 시작
+1. 기본 Entity 설계 시작
+2. User 모듈 작업
+3. Board 모듈 작업
+4. 배포
+5. ?. MySQL 로컬 설치 및 데이터베이스 생성
+
