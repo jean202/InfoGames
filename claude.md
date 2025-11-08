@@ -304,8 +304,8 @@ $(function() {
 ### 주요 마일스톤 커밋
 - [x] Initial Spring Boot project setup
 - [x] Complete Entity layer
-- [ ] Complete Service layer
-- [ ] Complete Controller layer
+- [x] Complete Service layer
+- [x] Complete Controller layer
 - [ ] Complete Frontend (Thymeleaf + jQuery)
 - [ ] First WAR deployment
 - [ ] AWS deployment success
@@ -342,11 +342,14 @@ FLUSH PRIVILEGES;
 - [x] 마이그레이션 계획 수립 (회사 환경에 맞춤)
 - [x] Spring Boot WAR 프로젝트 생성
 - [x] 엔티티 생성
+- [x] 레포지토리 + 서비스 레이어
+- [x] 컨트롤러 레이어
 
 ### 다음 작업
-1. 레포지토리 + 서비스 레이어
-2. 컨트롤러 레이어
-3. 프론트엔드 작업
-4. 배포
-5. ?. MySQL 로컬 설치 및 데이터베이스 생성
+1. 프론트엔드 작업
+2. 배포
+3. MySQL 로컬 설치 및 데이터베이스 생성
+4. 테스트 코드 작성
+5. 코드 리뷰
+6. 개선
 
