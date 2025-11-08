@@ -290,9 +290,9 @@ $(function() {
 - **`refactor/v2.0`**: 리팩토링 작업 브랜치
     - `feature/project-setup`
     - `feature/entity-design`
-    - `feature/user-module`
-    - `feature/board-module`
-    - `feature/deployment`
+    - `feature/repository-service`
+    - `feature/controller-layer`
+
 ### 커밋 규칙
 - feat: 새 기능
 - fix: 버그 수정
@@ -303,7 +303,7 @@ $(function() {
 
 ### 주요 마일스톤 커밋
 - [x] Initial Spring Boot project setup
-- [ ] Complete Entity layer
+- [x] Complete Entity layer
 - [ ] Complete Service layer
 - [ ] Complete Controller layer
 - [ ] Complete Frontend (Thymeleaf + jQuery)
@@ -341,11 +341,12 @@ FLUSH PRIVILEGES;
 - [x] 기존 프로젝트 분석
 - [x] 마이그레이션 계획 수립 (회사 환경에 맞춤)
 - [x] Spring Boot WAR 프로젝트 생성
+- [x] 엔티티 생성
 
 ### 다음 작업
-1. 기본 Entity 설계 시작
-2. User 모듈 작업
-3. Board 모듈 작업
+1. 레포지토리 + 서비스 레이어
+2. 컨트롤러 레이어
+3. 프론트엔드 작업
 4. 배포
 5. ?. MySQL 로컬 설치 및 데이터베이스 생성
 
