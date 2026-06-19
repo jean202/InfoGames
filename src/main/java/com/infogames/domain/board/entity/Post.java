@@ -13,7 +13,11 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @SuperBuilder
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name = "board_type")
+// 상속 구분용 discriminator 는 boardType 과 별도 컬럼(post_type)을 사용한다.
+// (둘을 같은 컬럼에 매핑하면 일반 Post 의 discriminator 'POST' 가 BoardType 으로
+//  역변환되며 깨진다)
+@DiscriminatorColumn(name = "post_type")
+@DiscriminatorValue("POST")
 public class Post extends BaseEntity {
 
     @Id
@@ -25,8 +29,9 @@ public class Post extends BaseEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private User author;
 
+    // 게시판 종류(FREE/TIP/REVIEW). 실제 영속 컬럼으로 저장한다.
     @Enumerated(EnumType.STRING)
-    @Column(name = "board_type", nullable = false, insertable = false, updatable = false)
+    @Column(name = "board_type", nullable = false)
     private BoardType boardType;
 
     @Column(nullable = false, length = 200)

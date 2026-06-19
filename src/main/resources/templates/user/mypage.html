@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/common :: head('마이페이지')}"></head>
+<body>
+<nav th:replace="~{fragments/common :: nav}"></nav>
+
+<div class="container">
+    <div class="card" style="max-width:520px;margin:0 auto;">
+        <h2>마이페이지</h2>
+        <table>
+            <tr><th>아이디</th><td th:text="${user.username}"></td></tr>
+            <tr><th>이름</th><td th:text="${user.name}"></td></tr>
+            <tr><th>닉네임</th><td th:text="${user.nickname}"></td></tr>
+            <tr><th>이메일</th><td th:text="${user.email}"></td></tr>
+            <tr><th>생년월일</th><td th:text="${user.birth}"></td></tr>
+            <tr><th>성별</th><td th:text="${user.gender == 'MALE' ? '남성' : '여성'}"></td></tr>
+            <tr><th>가입일</th><td th:text="${user.createdAt}"></td></tr>
+        </table>
+        <div class="row-actions" style="margin-top:16px;">
+            <a class="btn" th:href="@{/user/edit}">정보 수정</a>
+            <a class="btn btn-secondary" th:href="@{/user/change-password}">비밀번호 변경</a>
+            <a class="btn btn-danger" th:href="@{/user/delete}">회원 탈퇴</a>
+        </div>
+    </div>
+</div>
+
+<footer th:replace="~{fragments/common :: footer}"></footer>
+</body>
+</html>

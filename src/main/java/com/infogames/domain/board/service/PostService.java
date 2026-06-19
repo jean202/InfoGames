@@ -46,6 +46,7 @@ public class PostService {
             
             post = ReviewPost.builder()
                     .author(user)
+                    .boardType(BoardType.REVIEW)
                     .title(request.getTitle())
                     .content(request.getContent())
                     .rating(request.getRating())
@@ -54,9 +55,10 @@ public class PostService {
             
             ((ReviewPost) post).validateRating();
         } else {
-            // 일반 게시글
+            // 일반 게시글 (FREE/TIP)
             post = Post.builder()
                     .author(user)
+                    .boardType(request.getBoardType())
                     .title(request.getTitle())
                     .content(request.getContent())
                     .viewCount(0)

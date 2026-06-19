@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/common :: head('게시글')}"></head>
+<body>
+<nav th:replace="~{fragments/common :: nav}"></nav>
+
+<div class="container" th:with="type=${boardType.name().toLowerCase()}">
+    <div class="card">
+        <h2 th:text="${post.title}">제목</h2>
+        <p class="muted">
+            <span th:text="${post.authorNickname}">작성자</span> ·
+            <span th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd HH:mm')}"></span> ·
+            조회 <span th:text="${post.viewCount}">0</span>
+            <span th:if="${boardType.name() == 'REVIEW'}"> · 평점 <span th:text="${post.rating}"></span>/5</span>
+        </p>
+
+        <div th:if="${files != null and !files.isEmpty()}" class="muted" style="margin:8px 0;">
+            첨부:
+            <th:block th:each="f : ${files}">
+                <a th:href="@{'/api/file/download/' + ${f.id}}" th:text="${f.originalName}"></a>&nbsp;
+            </th:block>
+        </div>
+
+        <div style="white-space:pre-wrap;margin:16px 0;min-height:120px;" th:text="${post.content}">내용</div>
+
+        <div class="row-actions">
+            <a class="btn btn-secondary" th:href="@{'/board/' + ${type} + '/list'}">목록</a>
+            <th:block th:if="${isAuthor}">
+                <a class="btn" th:href="@{'/board/' + ${type} + '/edit/' + ${post.id}}">수정</a>
+                <button class="btn-danger" id="deletePostBtn">삭제</button>
+            </th:block>
+        </div>
+    </div>
+
+    <!-- 댓글 영역 -->
+    <div class="card">
+        <h3>댓글 <span id="commentCount">0</span></h3>
+        <div id="commentList"></div>
+
+        <div th:if="${session.userId != null}" style="margin-top:16px;">
+            <textarea id="newComment" placeholder="댓글을 입력하세요" style="min-height:80px;"></textarea>
+            <div style="margin-top:8px;"><button onclick="addComment()">댓글 등록</button></div>
+        </div>
+        <p th:unless="${session.userId != null}" class="muted">댓글을 작성하려면 <a th:href="@{/user/login}">로그인</a>하세요.</p>
+    </div>
+</div>
+
+<footer th:replace="~{fragments/common :: footer}"></footer>
+
+<script th:inline="javascript">
+var POST_ID = [[${post.id}]];
+var CURRENT_USER = [[${session.userId}]];
+var BOARD_TYPE = [[${type}]];
+
+function esc(s) { return $("<div>").text(s == null ? "" : s).html(); }
+
+$("#deletePostBtn").on("click", function () {
+    if (!confirm("게시글을 삭제하시겠습니까?")) return;
+    $.ajax({ url: "/api/board/" + POST_ID, type: "DELETE" })
+        .done(function () { location.href = "/board/" + BOARD_TYPE + "/list"; })
+        .fail(function (xhr) { alert(errText(xhr)); });
+});
+
+function loadComments() {
+    $.getJSON("/api/comments", { postId: POST_ID }).done(function (res) {
+        $("#commentCount").text(res.count);
+        var $list = $("#commentList").empty();
+        (res.comments || []).forEach(function (c) { renderComment(c, $list); });
+    });
+}
+
+function renderComment(c, $list) {
+    var mine = CURRENT_USER != null && c.authorId === CURRENT_USER;
+    var canReply = CURRENT_USER != null;
+    var $el = $('<div class="comment"></div>').css("margin-left", (c.depth * 24) + "px");
+    var actions = '';
+    if (canReply) actions += '<a href="javascript:void(0)" class="reply">답글</a>';
+    if (mine) actions += ' <a href="javascript:void(0)" class="edit">수정</a> <a href="javascript:void(0)" class="del">삭제</a>';
+    $el.html(
+        '<div class="meta">' + esc(c.authorNickname) + ' · ' + (c.createdAt || '').toString().replace('T', ' ').substring(0, 16) + '</div>' +
+        '<div class="body">' + esc(c.content) + '</div>' +
+        '<div class="actions">' + actions + '</div>'
+    );
+
+    $el.find(".del").on("click", function () {
+        if (!confirm("댓글을 삭제하시겠습니까? (답글도 함께 삭제됩니다)")) return;
+        $.ajax({ url: "/api/comments/" + c.id, type: "DELETE" })
+            .done(loadComments).fail(function (xhr) { alert(errText(xhr)); });
+    });
+    $el.find(".edit").on("click", function () {
+        var text = prompt("댓글 수정", c.content);
+        if (text == null) return;
+        $.ajax({ url: "/api/comments/" + c.id, type: "PUT",
+            contentType: "application/json", data: JSON.stringify({ content: text }) })
+            .done(loadComments).fail(function (xhr) { alert(errText(xhr)); });
+    });
+    $el.find(".reply").on("click", function () {
+        if ($el.find(".reply-box").length) { $el.find(".reply-box").remove(); return; }
+        var $box = $('<div class="reply-box" style="margin-top:8px;"><textarea style="min-height:60px;"></textarea>' +
+            '<div style="margin-top:6px;"><button class="btn-sm">답글 등록</button></div></div>');
+        $box.find("button").on("click", function () {
+            var content = $box.find("textarea").val();
+            if (!content) return;
+            $.ajax({ url: "/api/comments/reply", type: "POST",
+                contentType: "application/json", data: JSON.stringify({ parentId: c.id, content: content }) })
+                .done(loadComments).fail(function (xhr) { alert(errText(xhr)); });
+        });
+        $el.append($box);
+    });
+
+    $list.append($el);
+    (c.children || []).forEach(function (child) { renderComment(child, $list); });
+}
+
+function addComment() {
+    var content = $("#newComment").val();
+    if (!content) return;
+    $.ajax({ url: "/api/comments", type: "POST",
+        contentType: "application/json", data: JSON.stringify({ postId: POST_ID, content: content }) })
+        .done(function () { $("#newComment").val(""); loadComments(); })
+        .fail(function (xhr) { alert(errText(xhr)); });
+}
+
+$(loadComments);
+</script>
+</body>
+</html>

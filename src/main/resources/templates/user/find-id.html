@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/common :: head('아이디 찾기')}"></head>
+<body>
+<nav th:replace="~{fragments/common :: nav}"></nav>
+
+<div class="container">
+    <div class="card" style="max-width:420px;margin:0 auto;">
+        <h2>아이디 찾기</h2>
+        <div class="msg" id="msg" style="display:none;"></div>
+        <form id="form">
+            <label>이름</label>
+            <input type="text" name="name" required>
+            <label>이메일</label>
+            <input type="email" name="email" required>
+            <div style="margin-top:16px;"><button type="submit">아이디 찾기</button></div>
+        </form>
+    </div>
+</div>
+
+<footer th:replace="~{fragments/common :: footer}"></footer>
+<script>
+$("#form").submit(function (e) {
+    e.preventDefault();
+    var data = { name: this.name.value, email: this.email.value };
+    $.ajax({ url: "/api/user/find-id", type: "POST",
+        contentType: "application/json", data: JSON.stringify(data) })
+    .done(function (r) { showMsg("#msg", "회원님의 아이디는 [" + r.username + "] 입니다.", true); })
+    .fail(function (xhr) { showMsg("#msg", errText(xhr), false); });
+});
+</script>
+</body>
+</html>

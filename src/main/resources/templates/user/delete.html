@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/common :: head('회원 탈퇴')}"></head>
+<body>
+<nav th:replace="~{fragments/common :: nav}"></nav>
+
+<div class="container">
+    <div class="card" style="max-width:420px;margin:0 auto;">
+        <h2>회원 탈퇴</h2>
+        <div class="msg error">탈퇴 시 계정이 비활성화됩니다. 계속하시겠습니까?</div>
+        <div class="msg" id="msg" style="display:none;"></div>
+        <div style="margin-top:16px;">
+            <button class="btn-danger" onclick="doDelete()">탈퇴하기</button>
+            <a class="btn btn-secondary" th:href="@{/user/mypage}">취소</a>
+        </div>
+    </div>
+</div>
+
+<footer th:replace="~{fragments/common :: footer}"></footer>
+<script>
+function doDelete() {
+    if (!confirm("정말 탈퇴하시겠습니까?")) return;
+    $.ajax({ url: "/api/user/delete", type: "DELETE" })
+    .done(function (r) {
+        alert(r.message);
+        location.href = "/";
+    }).fail(function (xhr) { showMsg("#msg", errText(xhr), false); });
+}
+</script>
+</body>
+</html>

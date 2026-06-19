@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<!--
+  공통 fragment 모음: head, nav, footer
+  각 페이지에서 th:replace 로 삽입한다.
+-->
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Spring Security CSRF 토큰 (jQuery AJAX 에서 사용) -->
+    <meta name="_csrf" th:content="${_csrf != null ? _csrf.token : ''}">
+    <meta name="_csrf_header" th:content="${_csrf != null ? _csrf.headerName : ''}">
+    <title th:text="${title} ?: 'InfoGames'">InfoGames</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script th:src="@{/js/common.js}"></script>
+</head>
+
+<body>
+<nav class="nav" th:fragment="nav">
+    <a class="brand" th:href="@{/}">🎮 InfoGames</a>
+    <a th:href="@{/board/free/list}">자유게시판</a>
+    <a th:href="@{/board/tip/list}">팁게시판</a>
+    <a th:href="@{/board/review/list}">리뷰게시판</a>
+    <span class="spacer"></span>
+    <th:block th:if="${session.userId != null}">
+        <span th:text="${session.nickname} + '님'">닉네임님</span>
+        <a th:href="@{/user/mypage}">마이페이지</a>
+        <a href="javascript:logout()">로그아웃</a>
+    </th:block>
+    <th:block th:unless="${session.userId != null}">
+        <a th:href="@{/user/login}">로그인</a>
+        <a th:href="@{/user/signup}">회원가입</a>
+    </th:block>
+</nav>
+
+<footer th:fragment="footer" style="text-align:center;padding:24px;color:#9ca3af;font-size:13px;">
+    InfoGames — Spring Boot 마이그레이션 데모
+</footer>
+</body>
+</html>

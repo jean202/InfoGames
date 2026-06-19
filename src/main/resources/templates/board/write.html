@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/common :: head('글쓰기')}"></head>
+<body>
+<nav th:replace="~{fragments/common :: nav}"></nav>
+
+<div class="container" th:with="type=${boardType.name().toLowerCase()}">
+    <div class="card">
+        <h2 th:text="${boardType.displayName} + ' 글쓰기'">글쓰기</h2>
+        <div class="msg" id="msg" style="display:none;"></div>
+        <form id="form" th:data-type="${type}" th:data-board="${boardType.name()}">
+            <label>제목</label>
+            <input type="text" name="title" required>
+
+            <div th:if="${boardType.name() == 'REVIEW'}">
+                <label>평점 (0-5)</label>
+                <input type="number" name="rating" min="0" max="5" value="5">
+            </div>
+
+            <label>내용</label>
+            <textarea name="content" required></textarea>
+
+            <div style="margin-top:16px;">
+                <button type="submit">등록</button>
+                <a class="btn btn-secondary" th:href="@{'/board/' + ${type} + '/list'}">목록</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<footer th:replace="~{fragments/common :: footer}"></footer>
+<script>
+$("#form").submit(function (e) {
+    e.preventDefault();
+    var $f = $(this), type = $f.data("type"), board = $f.data("board");
+    var data = { boardType: board, title: this.title.value, content: this.content.value };
+    if (board === "REVIEW") data.rating = parseInt(this.rating.value, 10);
+    $.ajax({ url: "/api/board/write", type: "POST",
+        contentType: "application/json", data: JSON.stringify(data) })
+    .done(function (r) { location.href = "/board/" + type + "/view/" + r.id; })
+    .fail(function (xhr) { showMsg("#msg", errText(xhr), false); });
+});
+</script>
+</body>
+</html>

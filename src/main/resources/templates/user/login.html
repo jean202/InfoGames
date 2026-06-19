@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/common :: head('로그인')}"></head>
+<body>
+<nav th:replace="~{fragments/common :: nav}"></nav>
+
+<div class="container">
+    <div class="card" style="max-width:420px;margin:0 auto;">
+        <h2>로그인</h2>
+        <div class="msg" id="msg" style="display:none;"></div>
+        <form id="loginForm">
+            <label>아이디</label>
+            <input type="text" name="username" required>
+            <label>비밀번호</label>
+            <input type="password" name="password" required>
+            <div style="margin-top:16px;">
+                <button type="submit">로그인</button>
+                <a class="btn btn-secondary" th:href="@{/user/signup}">회원가입</a>
+            </div>
+        </form>
+        <p class="muted" style="margin-top:12px;">
+            <a th:href="@{/user/find-id}">아이디 찾기</a> ·
+            <a th:href="@{/user/find-password}">비밀번호 찾기</a>
+        </p>
+    </div>
+</div>
+
+<footer th:replace="~{fragments/common :: footer}"></footer>
+<script>
+$("#loginForm").submit(function (e) {
+    e.preventDefault();
+    var data = { username: this.username.value, password: this.password.value };
+    $.ajax({
+        url: "/api/user/login", type: "POST",
+        contentType: "application/json", data: JSON.stringify(data)
+    }).done(function () {
+        location.href = "/";
+    }).fail(function (xhr) {
+        showMsg("#msg", errText(xhr), false);
+    });
+});
+</script>
+</body>
+</html>

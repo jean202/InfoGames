@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/common :: head('회원가입')}"></head>
+<body>
+<nav th:replace="~{fragments/common :: nav}"></nav>
+
+<div class="container">
+    <div class="card" style="max-width:480px;margin:0 auto;">
+        <h2>회원가입</h2>
+        <div class="msg" id="msg" style="display:none;"></div>
+        <form id="signupForm">
+            <label>아이디 <span class="muted">(영문/숫자 4-20자)</span></label>
+            <div style="display:flex;gap:8px;">
+                <input type="text" name="username" required>
+                <button type="button" class="btn-secondary" onclick="checkDup('username')">중복확인</button>
+            </div>
+            <small id="username-chk" class="muted"></small>
+
+            <label>비밀번호 <span class="muted">(대소문자/숫자/특수문자 8-20자)</span></label>
+            <input type="password" name="password" required>
+            <label>비밀번호 확인</label>
+            <input type="password" name="passwordConfirm" required>
+
+            <label>이름</label>
+            <input type="text" name="name" required>
+            <label>이메일</label>
+            <input type="email" name="email" required>
+
+            <label>닉네임 <span class="muted">(2-10자)</span></label>
+            <div style="display:flex;gap:8px;">
+                <input type="text" name="nickname" required>
+                <button type="button" class="btn-secondary" onclick="checkDup('nickname')">중복확인</button>
+            </div>
+            <small id="nickname-chk" class="muted"></small>
+
+            <label>생년월일</label>
+            <input type="date" name="birth" required>
+            <label>성별</label>
+            <select name="gender">
+                <option value="MALE">남성</option>
+                <option value="FEMALE">여성</option>
+            </select>
+
+            <div style="margin-top:16px;">
+                <button type="submit">가입하기</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<footer th:replace="~{fragments/common :: footer}"></footer>
+<script>
+function checkDup(field) {
+    var val = $("[name='" + field + "']").val();
+    if (!val) return;
+    var url = field === "username" ? "/api/user/check-username" : "/api/user/check-nickname";
+    var param = {}; param[field] = val;
+    $.getJSON(url, param).done(function (r) {
+        $("#" + field + "-chk").text(r.message).css("color", r.exists ? "#dc2626" : "#166534");
+    });
+}
+$("#signupForm").submit(function (e) {
+    e.preventDefault();
+    var f = this;
+    var data = {
+        username: f.username.value, password: f.password.value,
+        passwordConfirm: f.passwordConfirm.value, name: f.name.value,
+        email: f.email.value, nickname: f.nickname.value,
+        birth: f.birth.value, gender: f.gender.value
+    };
+    $.ajax({
+        url: "/api/user/signup", type: "POST",
+        contentType: "application/json", data: JSON.stringify(data)
+    }).done(function () {
+        alert("회원가입이 완료되었습니다. 로그인해 주세요.");
+        location.href = "/user/login";
+    }).fail(function (xhr) {
+        showMsg("#msg", errText(xhr), false);
+    });
+});
+</script>
+</body>
+</html>

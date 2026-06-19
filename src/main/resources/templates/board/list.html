@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/common :: head('게시판')}"></head>
+<body>
+<nav th:replace="~{fragments/common :: nav}"></nav>
+
+<div class="container" th:with="type=${boardType.name().toLowerCase()}">
+    <div class="card">
+        <div style="display:flex;align-items:center;">
+            <h2 th:text="${boardType.displayName}" style="margin:0;">게시판</h2>
+            <span class="spacer" style="flex:1;"></span>
+            <a class="btn" th:href="@{'/board/' + ${type} + '/write'}">글쓰기</a>
+        </div>
+
+        <form method="get" th:action="@{'/board/' + ${type} + '/list'}" style="display:flex;gap:8px;margin:16px 0;">
+            <input type="text" name="keyword" th:value="${keyword}" placeholder="제목/내용 검색">
+            <button type="submit" class="btn-secondary">검색</button>
+        </form>
+
+        <table>
+            <thead>
+            <tr><th style="width:70px;">번호</th><th>제목</th><th style="width:120px;">작성자</th><th style="width:80px;">조회</th><th style="width:120px;">작성일</th></tr>
+            </thead>
+            <tbody>
+            <tr th:if="${posts.empty}"><td colspan="5" style="text-align:center;color:#9ca3af;">게시글이 없습니다.</td></tr>
+            <tr th:each="post : ${posts.content}">
+                <td th:text="${post.id}"></td>
+                <td><a th:href="@{'/board/' + ${type} + '/view/' + ${post.id}}" th:text="${post.title}"></a></td>
+                <td th:text="${post.authorNickname}"></td>
+                <td th:text="${post.viewCount}"></td>
+                <td th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd')}"></td>
+            </tr>
+            </tbody>
+        </table>
+
+        <div class="pagination" th:if="${posts.totalPages > 0}">
+            <th:block th:each="i : ${#numbers.sequence(0, posts.totalPages - 1)}">
+                <span th:if="${i == posts.number}" class="active" th:text="${i + 1}"></span>
+                <a th:unless="${i == posts.number}"
+                   th:href="@{'/board/' + ${type} + '/list'(page=${i}, keyword=${keyword})}"
+                   th:text="${i + 1}"></a>
+            </th:block>
+        </div>
+    </div>
+</div>
+
+<footer th:replace="~{fragments/common :: footer}"></footer>
+</body>
+</html>
