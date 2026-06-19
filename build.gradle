@@ -1,0 +1,64 @@
+plugins {
+    id 'java'
+    id 'war'
+    id 'org.springframework.boot' version '3.2.5'
+    id 'io.spring.dependency-management' version '1.1.4'
+}
+
+group = 'com.infogames'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Web (MVC + REST)
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    // Persistence (JPA / Hibernate)
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+    // View (Thymeleaf)
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+
+    // Security (Session 기반)
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+
+    // Bean Validation
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    // Lombok
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    // Database drivers
+    runtimeOnly 'com.h2database:h2'                 // 로컬/개발(dev) 프로파일
+    runtimeOnly 'com.mysql:mysql-connector-j'       // 운영(prod) 프로파일
+
+    // WAR 패키징: 외장 Tomcat 배포 시 내장 Tomcat은 provided 처리
+    providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
+
+    // Test
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+// bootWar 결과물 이름 고정: build/libs/infogames.war
+bootWar {
+    archiveFileName = 'infogames.war'
+}

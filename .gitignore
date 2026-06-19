@@ -34,3 +34,6 @@ application-local.yml
 *.jar
 *.war
 *.ear
+
+# Gradle wrapper jar는 빌드에 필수이므로 추적 유지
+!gradle/wrapper/gradle-wrapper.jar

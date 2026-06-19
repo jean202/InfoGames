@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>InfoGames</title>
+</head>
+<body>
+    <h1>InfoGames</h1>
+    <p>게임 정보 커뮤니티 (Spring Boot 마이그레이션)</p>
+    <ul>
+        <li>자유게시판 글 수: <span th:text="${freeCount}">0</span></li>
+        <li>팁게시판 글 수: <span th:text="${tipCount}">0</span></li>
+        <li>리뷰게시판 글 수: <span th:text="${reviewCount}">0</span></li>
+    </ul>
+    <!-- 상세 화면(board/*, user/*)은 Phase 3(Thymeleaf + jQuery)에서 구현 예정 -->
+</body>
+</html>
