@@ -13,7 +13,9 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 public class ReviewPost extends Post {
 
-    @Column(nullable = false)
+    // SINGLE_TABLE 상속에서 하위 클래스 전용 컬럼은 DB 레벨에서 nullable 이어야 한다
+    // (일반 Post 저장 시 RATING 이 null 이므로). 평점 필수 여부는 서비스/검증 로직에서 보장.
+    @Column
     @Builder.Default
     private Integer rating = 0;
 
