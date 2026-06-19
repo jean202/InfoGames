@@ -2,15 +2,25 @@ package com.infogames.domain.user.controller;
 
 import com.infogames.domain.user.dto.*;
 import com.infogames.domain.user.service.UserService;
+import com.infogames.global.security.CustomUserDetails;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
@@ -20,6 +30,8 @@ import java.util.Map;
 public class UserApiController {
 
     private final UserService userService;
+    private final AuthenticationManager authenticationManager;
+    private final SecurityContextRepository securityContextRepository;
 
     /**
      * 회원가입
@@ -42,24 +54,38 @@ public class UserApiController {
      * 로그인
      */
     @PostMapping("/login")
-    public ResponseEntity<?> login(@Valid @RequestBody UserLoginRequest request, 
+    public ResponseEntity<?> login(@Valid @RequestBody UserLoginRequest request,
                                     BindingResult bindingResult,
+                                    HttpServletRequest httpRequest,
+                                    HttpServletResponse httpResponse,
                                     HttpSession session) {
         if (bindingResult.hasErrors()) {
             return ResponseEntity.badRequest().body(bindingResult.getAllErrors());
         }
 
         try {
-            UserResponse user = userService.login(request);
-            
-            // 세션에 사용자 정보 저장
+            // Spring Security 인증 (비밀번호 검증 + 비활성 회원 차단)
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
+
+            // SecurityContext 를 세션에 저장하여 이후 요청에서 인증 상태 유지
+            SecurityContext context = SecurityContextHolder.createEmptyContext();
+            context.setAuthentication(authentication);
+            SecurityContextHolder.setContext(context);
+            securityContextRepository.saveContext(context, httpRequest, httpResponse);
+
+            // 기존 컨트롤러 호환을 위해 세션 속성도 유지
+            CustomUserDetails principal = (CustomUserDetails) authentication.getPrincipal();
+            UserResponse user = userService.getUserById(principal.getId());
             session.setAttribute("userId", user.getId());
             session.setAttribute("username", user.getUsername());
             session.setAttribute("nickname", user.getNickname());
-            
+
             return ResponseEntity.ok(user);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (DisabledException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", "탈퇴했거나 비활성화된 회원입니다"));
+        } catch (AuthenticationException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", "아이디 또는 비밀번호가 일치하지 않습니다"));
         }
     }
 
@@ -67,8 +93,12 @@ public class UserApiController {
      * 로그아웃
      */
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(HttpSession session) {
-        session.invalidate();
+    public ResponseEntity<?> logout(HttpServletRequest request) {
+        SecurityContextHolder.clearContext();
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            session.invalidate();
+        }
         return ResponseEntity.ok(Map.of("message", "로그아웃 성공"));
     }
 
