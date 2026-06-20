@@ -25,6 +25,7 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final UserRepository userRepository;
+    private final com.infogames.global.util.HtmlSanitizer htmlSanitizer;
 
     /**
      * 게시글 작성
@@ -37,22 +38,23 @@ public class PostService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다"));
 
         Post post;
+        String content = htmlSanitizer.sanitize(request.getContent());
 
         // ReviewBoard인 경우
         if (request.getBoardType() == BoardType.REVIEW) {
             if (request.getRating() == null) {
                 throw new IllegalArgumentException("평점은 필수입니다");
             }
-            
+
             post = ReviewPost.builder()
                     .author(user)
                     .boardType(BoardType.REVIEW)
                     .title(request.getTitle())
-                    .content(request.getContent())
+                    .content(content)
                     .rating(request.getRating())
                     .viewCount(0)
                     .build();
-            
+
             ((ReviewPost) post).validateRating();
         } else {
             // 일반 게시글 (FREE/TIP)
@@ -60,7 +62,7 @@ public class PostService {
                     .author(user)
                     .boardType(request.getBoardType())
                     .title(request.getTitle())
-                    .content(request.getContent())
+                    .content(content)
                     .viewCount(0)
                     .build();
         }
@@ -139,16 +141,18 @@ public class PostService {
             throw new IllegalArgumentException("게시글 수정 권한이 없습니다");
         }
 
+        String content = htmlSanitizer.sanitize(request.getContent());
+
         // ReviewPost인 경우
         if (post instanceof ReviewPost && request.getRating() != null) {
             ((ReviewPost) post).updateWithRating(
-                    request.getTitle(), 
-                    request.getContent(), 
+                    request.getTitle(),
+                    content,
                     request.getRating()
             );
             ((ReviewPost) post).validateRating();
         } else {
-            post.update(request.getTitle(), request.getContent());
+            post.update(request.getTitle(), content);
         }
 
         log.info("게시글 수정 완료: ID {}", postId);

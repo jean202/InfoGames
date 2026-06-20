@@ -60,6 +60,37 @@ public class FileController {
     }
 
     /**
+     * CKEditor 인라인 이미지 업로드 (레거시 ImgFileUpload 대체).
+     * CKEditor 4 의 filebrowserUploadUrl 규약에 맞춰 {uploaded, fileName, url} 을 반환한다.
+     */
+    @PostMapping("/image")
+    public ResponseEntity<?> uploadImage(@RequestParam("upload") MultipartFile upload,
+                                         HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
+            return ResponseEntity.status(401).body(Map.of(
+                    "uploaded", 0,
+                    "error", Map.of("message", "로그인이 필요합니다")));
+        }
+        try {
+            String url = fileService.uploadImage(upload);
+            return ResponseEntity.ok(Map.of(
+                    "uploaded", 1,
+                    "fileName", upload.getOriginalFilename() != null ? upload.getOriginalFilename() : "image",
+                    "url", url));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.ok(Map.of(
+                    "uploaded", 0,
+                    "error", Map.of("message", e.getMessage())));
+        } catch (IOException e) {
+            log.error("이미지 업로드 실패", e);
+            return ResponseEntity.ok(Map.of(
+                    "uploaded", 0,
+                    "error", Map.of("message", "이미지 업로드에 실패했습니다")));
+        }
+    }
+
+    /**
      * 파일 다운로드
      */
     @GetMapping("/download/{fileId}")

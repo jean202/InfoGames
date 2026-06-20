@@ -38,6 +38,9 @@ dependencies {
     // Bean Validation
     implementation 'org.springframework.boot:spring-boot-starter-validation'
 
+    // 에디터 HTML 본문 XSS 방지 (저장 시 sanitize)
+    implementation 'com.googlecode.owasp-java-html-sanitizer:owasp-java-html-sanitizer:20240325.1'
+
     // Lombok
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'

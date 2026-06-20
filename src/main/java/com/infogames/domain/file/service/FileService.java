@@ -70,6 +70,28 @@ public class FileService {
     }
 
     /**
+     * 에디터(CKEditor) 인라인 이미지 업로드.
+     * 게시글과 무관하게 저장하고, 정적으로 접근 가능한 URL 을 반환한다.
+     */
+    public String uploadImage(MultipartFile file) throws IOException {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("이미지 파일이 없습니다");
+        }
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new IllegalArgumentException("이미지 파일만 업로드할 수 있습니다");
+        }
+
+        String savedName = generateUniqueFileName(file.getOriginalFilename());
+        Path dir = Paths.get(uploadPath, "images");
+        Files.createDirectories(dir);
+        Files.write(dir.resolve(savedName), file.getBytes());
+
+        log.info("에디터 이미지 업로드: {}", savedName);
+        return "/uploads/images/" + savedName;
+    }
+
+    /**
      * 게시글의 파일 목록 조회
      */
     public List<FileResponse> getFilesByPost(Long postId) {

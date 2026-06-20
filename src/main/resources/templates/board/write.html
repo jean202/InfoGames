@@ -18,7 +18,10 @@
             </div>
 
             <label>내용</label>
-            <textarea name="content" required></textarea>
+            <textarea name="content" id="content"></textarea>
+
+            <label>첨부파일 <span class="muted">(여러 개 선택 가능)</span></label>
+            <input type="file" id="attachments" multiple>
 
             <div style="margin-top:16px;">
                 <button type="submit">등록</button>
@@ -29,15 +32,40 @@
 </div>
 
 <footer th:replace="~{fragments/common :: footer}"></footer>
+<script src="/ckeditor/ckeditor.js"></script>
 <script>
+CKEDITOR.replace("content", {
+    height: 320,
+    filebrowserUploadUrl: "/api/file/image",
+    filebrowserUploadMethod: "xhr"
+});
+
+// 선택한 첨부파일들을 순차 업로드 후 콜백
+function uploadAttachments(postId, done) {
+    var files = $("#attachments")[0].files;
+    if (!files.length) { done(); return; }
+    var i = 0;
+    (function next() {
+        if (i >= files.length) { done(); return; }
+        var fd = new FormData();
+        fd.append("postId", postId);
+        fd.append("file", files[i]);
+        fd.append("order", i);
+        $.ajax({ url: "/api/file/upload", type: "POST", data: fd, processData: false, contentType: false })
+            .always(function () { i++; next(); });
+    })();
+}
+
 $("#form").submit(function (e) {
     e.preventDefault();
     var $f = $(this), type = $f.data("type"), board = $f.data("board");
-    var data = { boardType: board, title: this.title.value, content: this.content.value };
+    var data = { boardType: board, title: this.title.value, content: CKEDITOR.instances.content.getData() };
     if (board === "REVIEW") data.rating = parseInt(this.rating.value, 10);
     $.ajax({ url: "/api/board/write", type: "POST",
         contentType: "application/json", data: JSON.stringify(data) })
-    .done(function (r) { location.href = "/board/" + type + "/view/" + r.id; })
+    .done(function (r) {
+        uploadAttachments(r.id, function () { location.href = "/board/" + type + "/view/" + r.id; });
+    })
     .fail(function (xhr) { showMsg("#msg", errText(xhr), false); });
 });
 </script>

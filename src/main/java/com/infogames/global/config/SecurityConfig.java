@@ -49,7 +49,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // 정적 리소스 / 기본 경로
                 .requestMatchers("/", "/health", "/error", "/favicon.ico").permitAll()
-                .requestMatchers("/css/**", "/js/**", "/images/**", "/uploads/**").permitAll()
+                .requestMatchers("/css/**", "/js/**", "/images/**", "/uploads/**", "/ckeditor/**").permitAll()
                 .requestMatchers("/h2-console/**").permitAll()
                 // 회원 인증 관련 공개 페이지
                 .requestMatchers("/user/login", "/user/signup", "/user/find-id", "/user/find-password").permitAll()
@@ -65,7 +65,11 @@ public class SecurityConfig {
             )
             .exceptionHandling(ex -> ex.authenticationEntryPoint(authenticationEntryPoint))
             .csrf(csrf -> csrf
-                .ignoringRequestMatchers(new AntPathRequestMatcher("/h2-console/**"))
+                // h2-console, 그리고 CKEditor 이미지 업로드(iframe 폼 전송이라 CSRF 헤더를
+                // 실을 수 없음 — 인증은 필요)는 CSRF 예외 처리
+                .ignoringRequestMatchers(
+                        new AntPathRequestMatcher("/h2-console/**"),
+                        new AntPathRequestMatcher("/api/file/image"))
             )
             .headers(headers -> headers
                 .frameOptions(frame -> frame.sameOrigin())

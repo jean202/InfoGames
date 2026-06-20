@@ -18,7 +18,19 @@
             </div>
 
             <label>내용</label>
-            <textarea name="content" required th:text="${post.content}"></textarea>
+            <textarea name="content" id="content" th:text="${post.content}"></textarea>
+
+            <label>기존 첨부파일</label>
+            <ul id="existingFiles" style="list-style:none;padding:0;margin:0;">
+                <li th:if="${files == null or files.isEmpty()}" class="muted">첨부파일 없음</li>
+                <li th:each="f : ${files}" th:attr="data-fid=${f.id}" style="margin:4px 0;">
+                    <a th:href="@{'/api/file/download/' + ${f.id}}" th:text="${f.originalName}"></a>
+                    <button type="button" class="btn-danger btn-sm" th:attr="onclick='deleteFile(' + ${f.id} + ')'">삭제</button>
+                </li>
+            </ul>
+
+            <label>첨부파일 추가 <span class="muted">(여러 개 선택 가능)</span></label>
+            <input type="file" id="attachments" multiple>
 
             <div style="margin-top:16px;">
                 <button type="submit">수정</button>
@@ -29,15 +41,47 @@
 </div>
 
 <footer th:replace="~{fragments/common :: footer}"></footer>
-<script>
+<script src="/ckeditor/ckeditor.js"></script>
+<script th:inline="javascript">
+var POST_ID = [[${post.id}]];
+CKEDITOR.replace("content", {
+    height: 320,
+    filebrowserUploadUrl: "/api/file/image",
+    filebrowserUploadMethod: "xhr"
+});
+
+function deleteFile(fileId) {
+    if (!confirm("첨부파일을 삭제하시겠습니까?")) return;
+    $.ajax({ url: "/api/file/" + fileId, type: "DELETE" })
+        .done(function () { $("li[data-fid='" + fileId + "']").remove(); })
+        .fail(function (xhr) { alert(errText(xhr)); });
+}
+
+function uploadAttachments(postId, done) {
+    var files = $("#attachments")[0].files;
+    if (!files.length) { done(); return; }
+    var i = 0;
+    (function next() {
+        if (i >= files.length) { done(); return; }
+        var fd = new FormData();
+        fd.append("postId", postId);
+        fd.append("file", files[i]);
+        fd.append("order", i);
+        $.ajax({ url: "/api/file/upload", type: "POST", data: fd, processData: false, contentType: false })
+            .always(function () { i++; next(); });
+    })();
+}
+
 $("#form").submit(function (e) {
     e.preventDefault();
     var $f = $(this), type = $f.data("type"), id = $f.data("id"), board = $f.data("board");
-    var data = { title: this.title.value, content: this.content.value };
+    var data = { title: this.title.value, content: CKEDITOR.instances.content.getData() };
     if (board === "REVIEW") data.rating = parseInt(this.rating.value, 10);
     $.ajax({ url: "/api/board/" + id, type: "PUT",
         contentType: "application/json", data: JSON.stringify(data) })
-    .done(function () { location.href = "/board/" + type + "/view/" + id; })
+    .done(function () {
+        uploadAttachments(id, function () { location.href = "/board/" + type + "/view/" + id; });
+    })
     .fail(function (xhr) { showMsg("#msg", errText(xhr), false); });
 });
 </script>
